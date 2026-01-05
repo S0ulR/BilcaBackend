@@ -1,5 +1,29 @@
 const geocodingService = require("../utils/geocodingService");
 
+// Cache en memoria con TTL
+const geocodeCache = new Map();
+const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 horas
+
+const getCacheKey = (...parts) =>
+  parts.join(":").toLowerCase().trim();
+
+const setCache = (key, value) => {
+  geocodeCache.set(key, {
+    value,
+    expires: Date.now() + CACHE_TTL
+  });
+};
+
+const getCache = (key) => {
+  const entry = geocodeCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expires) {
+    geocodeCache.delete(key);
+    return null;
+  }
+  return entry.value;
+};
+
 const VALID_COUNTRIES = ["AR", "UY", "PY", "BO", "CL", "BR"];
 
 exports.search = async (req, res) => {
@@ -11,20 +35,27 @@ exports.search = async (req, res) => {
       .json({ msg: "La consulta debe tener al menos 2 caracteres" });
   }
 
-  try {
-    const cleanQuery = q.trim();
-    // Validar el país
-    const VALID_COUNTRIES = ["AR", "UY", "PY", "BR", "CL", "BO"];
-    const countryCode = VALID_COUNTRIES.includes(country) ? country : "AR";
+  const cleanQuery = q.trim();
+  const countryCode = VALID_COUNTRIES.includes(country) ? country : "AR";
+  const cacheKey = getCacheKey("search", cleanQuery, countryCode);
 
+  // ✅ CACHE HIT
+  const cached = getCache(cacheKey);
+  if (cached) {
+    return res.json({ source: "cache", results: cached });
+  }
+
+  try {
     const results = await geocodingService.searchAddress(
       cleanQuery,
       countryCode
     );
-    return res.json(results);
+
+    setCache(cacheKey, results);
+    return res.json({ source: "api", results });
   } catch (err) {
     console.error("Error en geocode search:", err.message);
-    return res.json([]);
+    return res.json({ source: "error", results: [] });
   }
 };
 
@@ -38,14 +69,21 @@ exports.reverse = async (req, res) => {
   const latNum = parseFloat(lat);
   const lonNum = parseFloat(lon);
 
-  // Validar rango de coordenadas
   if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
     return res.status(400).json({ msg: "Coordenadas fuera de rango válido" });
   }
 
+  const cacheKey = getCacheKey("reverse", latNum, lonNum);
+
+  const cached = getCache(cacheKey);
+  if (cached) {
+    return res.json({ source: "cache", result: cached });
+  }
+
   try {
     const result = await geocodingService.reverseGeocode(latNum, lonNum);
-    return res.json(result);
+    setCache(cacheKey, result);
+    return res.json({ source: "api", result });
   } catch (err) {
     console.error("Error en reverse geocoding:", err.message);
     return res.status(500).json({ msg: "Error al obtener dirección" });
