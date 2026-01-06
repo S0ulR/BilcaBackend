@@ -5,6 +5,7 @@ const geocodeLimiter = rateLimit({
   max: 60,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === "OPTIONS",
   handler: (req, res) => {
     return res.status(429).json({
       msg: "Demasiadas solicitudes de geolocalización. Intenta más tarde.",
