@@ -132,7 +132,7 @@ exports.sendInvoice = async (req, res) => {
       <small>Este correo fue generado automáticamente.</small>
     `;
 
-    await sendEmail({
+    sendEmail({
       to: invoice.client.email,
       subject: `Factura ${invoice.invoiceNumber} - ${invoice.worker.name}`,
       html,

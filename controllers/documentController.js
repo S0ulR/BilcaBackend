@@ -7,7 +7,9 @@ exports.sendDocumentEmail = async (req, res) => {
 
     // ✅ Validación robusta
     if (!to || !subject) {
-      return res.status(400).json({ msg: "Faltan campos obligatorios (to, subject)" });
+      return res
+        .status(400)
+        .json({ msg: "Faltan campos obligatorios (to, subject)" });
     }
 
     // ✅ Validar formato de email
@@ -25,7 +27,7 @@ exports.sendDocumentEmail = async (req, res) => {
         ]
       : [];
 
-    await sendEmail({
+    sendEmail({
       to,
       subject,
       html,

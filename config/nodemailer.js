@@ -25,6 +25,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
   tls: isDev ? { rejectUnauthorized: false } : { minVersion: "TLSv1.2" },
 });
 
@@ -178,7 +181,7 @@ const sendWelcomeEmail = async (to, name) => {
     </p>
   `;
 
-  await sendEmail({
+  sendEmail({
     to,
     subject: "Bienvenido a Bilca",
     text: `Hola ${name}, bienvenido a Bilca.`,
@@ -205,7 +208,7 @@ const sendPasswordResetEmail = async (to, resetLink) => {
     </p>
   `;
 
-  await sendEmail({
+  sendEmail({
     to,
     subject: "Restablecer contraseña",
     text: `Restablece tu contraseña: ${resetLink}`,
@@ -232,7 +235,7 @@ const sendHireNotification = async (to, clientName, serviceName, hireLink) => {
     </p>
   `;
 
-  await sendEmail({
+  sendEmail({
     to,
     subject: "Nueva contratación recibida",
     text: `${clientName} te contrató para ${serviceName}.`,
@@ -259,7 +262,7 @@ const sendPasswordChangedNotification = async (to, clientIp, userAgent) => {
     </p>
   `;
 
-  await sendEmail({
+  sendEmail({
     to,
     subject: "Cambio de contraseña realizado",
     text: "Tu contraseña fue actualizada.",
@@ -288,7 +291,7 @@ const sendReviewReminderEmail = async (
     </p>
   `;
 
-  await sendEmail({
+  sendEmail({
     to,
     subject: "Valora tu experiencia en Bilca",
     text: `Deja tu reseña sobre ${workerName}.`,

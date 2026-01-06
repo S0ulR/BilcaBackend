@@ -123,7 +123,9 @@ exports.createBudgetRequest = async (req, res) => {
 
       await notification.save();
       if (typeof sendNotificationEmail === "function") {
-        await sendNotificationEmail(notification);
+        sendNotificationEmail(notification).catch((err) =>
+          console.error("Notification email async error:", err.message)
+        );
       }
     }
 
@@ -242,8 +244,11 @@ exports.respondToRequest = async (req, res) => {
       });
 
       await notification.save();
+
       if (typeof sendNotificationEmail === "function") {
-        await sendNotificationEmail(notification);
+        sendNotificationEmail(notification).catch((err) =>
+          console.error("Notification email async error:", err.message)
+        );
       }
     }
 
@@ -322,8 +327,11 @@ exports.rejectBudgetRequest = async (req, res) => {
         onModel: "BudgetRequest",
       });
       await notification.save();
+
       if (typeof sendNotificationEmail === "function") {
-        await sendNotificationEmail(notification);
+        sendNotificationEmail(notification).catch((err) =>
+          console.error("Notification email async error:", err.message)
+        );
       }
     }
 

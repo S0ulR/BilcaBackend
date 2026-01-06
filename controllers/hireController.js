@@ -83,7 +83,9 @@ exports.createHire = async (req, res) => {
       });
       await notification.save();
       if (typeof sendNotificationEmail === "function") {
-        await sendNotificationEmail(notification);
+        sendNotificationEmail(notification).catch((err) =>
+          console.error("Notification email async error:", err.message)
+        );
       }
     } catch (notifErr) {
       console.error("Error al enviar notificación:", notifErr.message);
