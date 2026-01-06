@@ -21,10 +21,11 @@ connectDB();
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
+  transports: ["websocket", "polling"],
 });
 
 io.on("connection", (socket) => {
@@ -72,18 +73,23 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
+      // permitir requests sin origin (Postman, mobile, etc)
       if (!origin) return callback(null, true);
 
-      // Verificar si el origin está permitido
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error("CORS no permitido para este origen"), false);
+      console.warn("❌ CORS bloqueado para:", origin);
+      return callback(null, false); // ❗ NO lanzar error
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.options("*", cors());
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
